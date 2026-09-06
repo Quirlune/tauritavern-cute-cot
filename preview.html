@@ -1,18 +1,18 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>花笺 · 思考面板预览</title>
 <style>.cute-cot {
-    --cot-accent: #ed98b4;
-    --cot-text: #694852;
+    --cot-accent: #d3a1b7;
+    --cot-text: #79616d;
     --cot-limit: 180px;
     --cot-font: 14px;
     width: 100%;
-    margin: 8px 0 14px;
+    margin: 6px 0 8px;
     overflow: hidden;
     color: var(--cot-text);
-    background: #f9e8ee;
-    background: color-mix(in srgb, var(--cot-accent) 22%, #fff 78%);
-    border: 1px solid color-mix(in srgb, var(--cot-accent) 36%, transparent);
-    border-radius: 21px;
-    box-shadow: 0 3px 16px #65364806;
+    background: #f4e7ed;
+    background: color-mix(in srgb, var(--cot-accent) 26%, #fff 74%);
+    border: 0;
+    border-radius: 23px;
+    box-shadow: none;
     text-align: left;
     text-shadow: none;
     box-sizing: border-box;
@@ -33,7 +33,7 @@
     box-shadow: none;
     font: inherit;
     font-size: 14px;
-    letter-spacing: .035em;
+    letter-spacing: .015em;
     text-align: left;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -70,9 +70,9 @@
     overscroll-behavior-y: contain;
     scrollbar-width: thin;
     scrollbar-color: var(--cot-accent) transparent;
-    margin: 0 15px 13px 19px;
+    margin: 0 18px 14px 23px;
     padding: 13px 12px 17px 15px;
-    border-left: 1px solid color-mix(in srgb, var(--cot-accent) 65%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--cot-accent) 45%, transparent);
     box-sizing: border-box;
     -webkit-mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
     mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
@@ -92,6 +92,7 @@
 @keyframes cute-cot-breathe { 50% { opacity: .6; } }
 #cute-cot-settings .cute-cot-fields { display: grid; gap: 12px; padding: 12px 0; }
 #cute-cot-settings label { display: grid; gap: 5px; }
+#cute-cot-settings label.cute-cot-check { display: flex; align-items: center; gap: 8px; }
 #cute-cot-settings .cute-cot-colors { display: flex; flex-wrap: wrap; gap: 24px; }
 #cute-cot-settings input[type="color"] { width: 64px; min-height: 36px; padding: 3px; }
 #cute-cot-settings small { opacity: .75; line-height: 1.6; }
@@ -100,12 +101,73 @@
     .cute-cot *, .cute-cot *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
+/* Keep third-party themes from turning the panel/header into raised buttons.
+   Only this extension's own surface is reset; native message body styling stays. */
+#chat .mes .cute-cot {
+    background: color-mix(in srgb, var(--cot-accent) 26%, #fff 74%) !important;
+    color: var(--cot-text) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none !important;
+}
+#chat .mes .cute-cot .cute-cot-toggle {
+    background: transparent !important;
+    color: inherit !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+#chat .mes .cute-cot::before, #chat .mes .cute-cot::after,
+#chat .mes .cute-cot-toggle::before, #chat .mes .cute-cot-toggle::after { content: none !important; }
+
+/* Native DOM and message IDs remain intact. Grid places the avatar and header
+   on one row; subsequent children occupy the full width, reclaiming the gutter.
+   Editing and bulk-selection keep the host's existing layout. */
+#chat .mes.cute-cot-wide:has(> .mes_block):not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) {
+    display: grid !important;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: start;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mesAvatarWrapper {
+    grid-column: 1; grid-row: 1;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block {
+    display: contents !important;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > .ch_name {
+    grid-column: 2; grid-row: 1;
+}
+#chat .mes.cute-cot-wide > .mes_block > .mes_text {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+#chat .mes.cute-cot-wide > .mes_block > .mes_text > :first-child { margin-top: 0 !important; }
+
+/* Native morphdom retains existing segments, so only newly inserted text fades.
+   Start partially visible; no delay, blur, layout shift or per-character queue. */
+html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segment {
+    animation: cute-cot-body-appear var(--cute-cot-body-fade, 160ms) ease-out 0s 1 both !important;
+}
+@keyframes cute-cot-body-appear { from { opacity: .38; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segment { animation: none !important; }
+}
+
 *{box-sizing:border-box}body{margin:0;background:#faf7f8;color:#533f47;font:15px/1.8 system-ui,"Microsoft YaHei",sans-serif}.page{max-width:640px;margin:auto;padding:36px 22px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:21px;font-weight:650;letter-spacing:.1em}.badge{font-size:11px;color:#997982;border:1px solid #eddde3;border-radius:20px;padding:3px 10px}.intro{color:#a18a93;font-size:13px;margin:0 0 35px}.user{margin:0 0 30px auto;width:fit-content;max-width:88%;padding:13px 20px;background:#f1e8ee;border-radius:20px 20px 5px 20px}.name{display:flex;align-items:center;gap:10px;margin:20px 0 12px;font-size:14px}.avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#eec4d3;color:#fff}.mes_text{min-height:70px;padding:3px 4px;line-height:1.9}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;border-top:1px solid #ecdee3;padding-top:22px}.controls button{font:inherit;border:1px solid #e8cbd6;border-radius:20px;background:#fff8fb;color:#805866;padding:7px 16px;cursor:pointer}.controls label{display:flex;align-items:center;gap:8px;font-size:13px;color:#947783}.controls input{width:32px;height:32px;border:0;background:transparent}.note{font-size:12px;color:#a18a93;margin-top:18px}.cute-cot{margin-top:0}
 </style><main class="page"><header><span class="brand">花笺</span><span class="badge">自定义思考 · 交互预览</span></header><p class="intro">给思绪一点空间，也给正文留一点轻盈。</p><div class="user">帮我写一句轻柔的晚安问候。</div><div class="name"><span class="avatar">Q</span><span>Quirlune</span></div><article class="mes"><div class="mes_text"></div></article><div class="controls"><button id="replay">重新播放</button><button id="stop">停止思考</button><label>配色<input id="color" type="color" value="#ed98b4"></label></div><p class="note">思考中自动跟随最新文字；上下滑动可回看，结束后自动收起。<br>此页使用扩展的同一份面板代码，演示文字为模拟数据。</p></main>
 <script type="module">const KEY = 'cute_cot';
 const DEFAULTS = Object.freeze({
-    open: '<think>', close: '</think>', color: '#ed98b4',
-    textColor: '#694852', maxHeight: 180, fontSize: 14,
+    open: '<think>', close: '</think>', color: '#d3a1b7',
+    textColor: '#79616d', maxHeight: 180, fontSize: 14,
+    smoothBody: true, bodyFadeMs: 160, wideLayout: true,
 });
 
 function validateSettings(value) {
@@ -123,6 +185,9 @@ function validateSettings(value) {
     }
     s.maxHeight = Math.min(320, Math.max(80, Number(s.maxHeight) || 180));
     s.fontSize = Math.min(22, Math.max(12, Number(s.fontSize) || 14));
+    s.bodyFadeMs = Math.min(260, Math.max(80, Number(s.bodyFadeMs) || 160));
+    s.smoothBody = s.smoothBody !== false;
+    s.wideLayout = s.wideLayout !== false;
     return s;
 }
 
@@ -218,6 +283,7 @@ function applyTheme(root, settings) {
  * Detached virtualized messages and their listeners are collected together.
  */
 function renderPanel(messageElement, record, settings) {
+    messageElement.classList.toggle('cute-cot-wide', Boolean(record && settings.wideLayout));
     let ui = panels.get(messageElement);
     if (!record) {
         ui?.root.remove();
@@ -307,9 +373,11 @@ function setExpanded(ui, open) {
     ui.reveal.inert = !open;
 }
 
+document.querySelector('main').id='chat';document.documentElement.classList.add('cute-cot-smooth-body');document.querySelector('#color').value=DEFAULTS.color;
 const node=document.querySelector('.mes'),body=node.querySelector('.mes_text');
 let settings={...DEFAULTS},timer,record,started;
 const thought='先考虑语气：温柔、自然，不要过度亲昵。\n把忙碌的一天轻轻放下，留一个可以安静休息的画面。\n\n可以选月光、窗边或一阵晚风，但不需要堆叠修饰词。\n思考区只展示原文。下面这些标记也不会变成样式或组件：\n<style>body { display: none; }</style>\n<note>这是一段普通文本</note>\n**这里也不会变成加粗**\n\n最后用一句简短的祝愿收尾，保持自然的节奏。\n让烦恼先暂停，明天的事情交给明天。';
-function play(){clearInterval(timer);node.querySelector('.cute-cot')?.remove();body.textContent='';started=Date.now();let i=0;record={status:'thinking',text:'',duration:null};renderPanel(node,record,settings);timer=setInterval(()=>{i+=5;record.text=thought.slice(0,i);renderPanel(node,record,settings);if(i>=thought.length){clearInterval(timer);record.status='done';record.duration=Date.now()-started;renderPanel(node,record,settings);body.textContent='愿今晚的月光替你把烦恼放轻。好好休息，明天醒来，又是柔软崭新的一天。';}},90);}
-document.querySelector('#replay').onclick=play;document.querySelector('#stop').onclick=()=>{clearInterval(timer);record.status='interrupted';record.duration=Date.now()-started;renderPanel(node,record,settings);};document.querySelector('#color').oninput=e=>{settings.color=e.target.value;renderPanel(node,record,settings);};play();
+function showBody(){const reply='愿今晚的月光替你把烦恼放轻。好好休息，明天醒来，又是柔软崭新的一天。';let n=0;timer=setInterval(()=>{const span=document.createElement('span');span.className='text_segment';span.textContent=reply.slice(n,n+4);body.append(span);n+=4;if(n>=reply.length)clearInterval(timer);},90);}
+function play(){clearInterval(timer);node.querySelector('.cute-cot')?.remove();body.textContent='';started=Date.now();let i=0;record={status:'thinking',text:'',duration:null};renderPanel(node,record,settings);timer=setInterval(()=>{i+=5;record.text=thought.slice(0,i);renderPanel(node,record,settings);if(i>=thought.length){clearInterval(timer);record.status='done';record.duration=Date.now()-started;renderPanel(node,record,settings);showBody();}},90);}
+document.querySelector('#replay').onclick=play;document.querySelector('#stop').onclick=()=>{clearInterval(timer);if(record.status==='thinking'){record.status='interrupted';record.duration=Date.now()-started;renderPanel(node,record,settings);}};document.querySelector('#color').oninput=e=>{settings.color=e.target.value;renderPanel(node,record,settings);};play();
 </script></html>

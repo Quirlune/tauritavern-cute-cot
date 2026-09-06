@@ -20,11 +20,15 @@ const dependencies = ['chat', 'eventSource', 'event_types', 'power_user', 'isHid
 const nativeModule = `const {${dependencies.join(',')}}=globalThis.mock;\n` +
     extract('scripts/reasoning.js', 'export class ReasoningHandler {') + '\n' +
     extract('script.js', 'class StreamingProcessor {') + '\nexport { ReasoningHandler, StreamingProcessor };';
-const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/plugin/style.css"><style>body{font-family:system-ui;margin:20px;background:#faf7f8}.mes_reasoning_details{display:none}.mes_text{line-height:1.8}</style><main id="chat"><article class="mes" mesid="0"><details class="mes_reasoning_details"><summary><span class="mes_reasoning_header_title"></span></summary><div class="mes_reasoning"></div></details><button class="mes_edit_add_reasoning" hidden></button><div class="mes_text"></div><span class="mes_timer"></span><span class="tokenCounterDisplay"></span></article></main>`;
+const nativeFade = readFileSync(resolve(upstream, 'scripts/util/stream-fadein.js'), 'utf8')
+    .replace("import { morphdom } from '../../lib.js';", "import morphdom from '/morphdom.js';");
+const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/plugin/style.css"><style>body{font-family:system-ui;margin:20px;background:#faf7f8}.mes_reasoning_details{display:none}.mes_text{line-height:1.8}.mes{display:flex}.mesAvatarWrapper{width:56px;height:56px;background:#dec7d4;border-radius:50%;display:grid;place-items:center}.mes_block{padding-left:10px;width:100%;overflow:hidden}.ch_name{min-height:56px;padding-top:8px}#chat button{background:#e9e1d3!important;box-shadow:0 3px 12px #888!important;border:2px solid pink!important}</style><main id="chat"><article class="mes" mesid="0" is_user="false"><div class="mesAvatarWrapper">Q</div><div class="mes_block"><div class="ch_name">Quirlune</div><details class="mes_reasoning_details"><summary><span class="mes_reasoning_header_title"></span></summary><div class="mes_reasoning"></div></details><button class="mes_edit_add_reasoning" hidden></button><div class="mes_text"></div><span class="mes_timer"></span><span class="tokenCounterDisplay"></span></div></article></main>`;
 const server = createServer((req, res) => {
     if (req.url === '/') { res.setHeader('Content-Type', 'text/html'); res.end(html); return; }
     if (req.url === '/upstream.js') { res.setHeader('Content-Type', 'text/javascript'); res.end(nativeModule); return; }
     if (req.url === '/reasoning.js') { res.setHeader('Content-Type', 'text/javascript'); res.end('export {ReasoningHandler} from "/upstream.js";'); return; }
+    if (req.url === '/native-fade.js') { res.setHeader('Content-Type', 'text/javascript'); res.end(nativeFade); return; }
+    if (req.url === '/morphdom.js') { res.setHeader('Content-Type', 'text/javascript'); res.end(readFileSync(process.env.MORPHDOM_MODULE || resolve(plugin, 'node_modules/morphdom/dist/morphdom-esm.js'))); return; }
     if (req.url.startsWith('/plugin/')) {
         const path = resolve(plugin, req.url.slice(8));
         if (!path.startsWith(plugin + sep)) { res.writeHead(403).end(); return; }
@@ -45,6 +49,9 @@ try {
         const { DEFAULTS, KEY } = await import('/plugin/parser.js');
         const { renderPanel } = await import('/plugin/panel.js');
         const { installIntegration } = await import('/plugin/integration.js');
+        const { configureBodyFade } = await import('/plugin/body-fade.js');
+        const { applyStreamFadeIn } = await import('/native-fade.js');
+        globalThis.applyStreamFadeIn = applyStreamFadeIn;
         const listeners = new Map();
         const events = {
             on(k, fn) { const a=listeners.get(k)??[];a.push(fn);listeners.set(k,a); },
@@ -57,8 +64,11 @@ try {
         const calls=[];
         const guard=text=>{if(text.includes('PRIVATE')) throw Error('Thought reached native formatter');calls.push(text);return text;};
         const escape=text=>{const el=document.createElement('div');el.textContent=guard(text);return el.innerHTML;};
-        globalThis.replaceTransientMesTextHtmlWithRuntimePolicy=(root,html)=>root.querySelector('.mes_text').innerHTML=html;
-        globalThis.replaceMesTextHtmlWithRuntimePolicy=replaceTransientMesTextHtmlWithRuntimePolicy;
+        globalThis.replaceTransientMesTextHtmlWithRuntimePolicy=(root,html,{fadeIn=false}={})=>{
+            const text=root.querySelector('.mes_text');
+            if(fadeIn) applyStreamFadeIn(text,html); else text.innerHTML=html;
+        };
+        globalThis.replaceMesTextHtmlWithRuntimePolicy=(root,html)=>root.querySelector('.mes_text').innerHTML=html;
         globalThis.updateSwipeCounter=()=>{};
         globalThis.mock={chat:[message],eventSource:events,event_types:eventTypes,
             power_user:{reasoning:{auto_parse:true,prefix:'<think>',suffix:'</think>'},stream_fade_in:false,message_token_count_enabled:false},
@@ -70,7 +80,8 @@ try {
             syncMesToSwipe:()=>{message.swipes[0]=message.mes;message.swipe_info[0].extra=structuredClone(message.extra);},saveLogprobsForActiveMessage:()=>{},
         };
         const {ReasoningHandler,StreamingProcessor}=await import('/upstream.js');
-        const ctx={chat:mock.chat,eventSource:events,eventTypes,saveChat:async()=>{}};
+        const ctx={chat:mock.chat,eventSource:events,eventTypes,saveChat:async()=>{},powerUserSettings:mock.power_user};
+        configureBodyFade(ctx,{...DEFAULTS});
         installIntegration({getContext:()=>ctx,ReasoningHandler,getSettings:()=>DEFAULTS,render:renderPanel});
         const p=new StreamingProcessor('normal',false,new Date(),'',{});
         p.messageId=0;
@@ -87,6 +98,27 @@ try {
     const live = await page.locator('.cute-cot-viewport').evaluate(el=>({height:el.clientHeight,scroll:el.scrollTop,overflow:el.scrollHeight-el.clientHeight}));
     assert.ok(live.height <= 180);
     assert.ok(live.scroll > 0, 'thought scroll follows new content');
+    const geometry=await page.evaluate(()=>{
+        const row=document.querySelector('.mes').getBoundingClientRect(),panel=document.querySelector('.cute-cot').getBoundingClientRect(),body=document.querySelector('.mes_text').getBoundingClientRect();
+        const button=getComputedStyle(document.querySelector('.cute-cot-toggle'));
+        return {gutter:panel.left-row.left,bodyGutter:body.left-row.left,panelWidth:panel.width,rowWidth:row.width,buttonShadow:button.boxShadow,buttonBorder:button.borderTopWidth,buttonBackground:button.backgroundColor};
+    });
+    assert.ok(Math.abs(geometry.gutter)<1 && Math.abs(geometry.bodyGutter)<1);
+    assert.ok(Math.abs(geometry.rowWidth-geometry.panelWidth)<1);
+    assert.equal(geometry.buttonShadow,'none');assert.equal(geometry.buttonBorder,'0px');assert.equal(geometry.buttonBackground,'rgba(0, 0, 0, 0)');
+    // Verify the actual host segmentation/morphdom helper and CSS together.
+    const fade=await page.evaluate(async()=>{
+        const h=harness,base=h.raw.slice(0,h.raw.indexOf('</think>')+8);
+        await h.p.onProgressStreaming(0,base+'第一句。');
+        const text=document.querySelector('.mes_text'),old=text.querySelector('.text_segment');
+        const firstAnimation=old.getAnimations()[0];
+        await h.p.onProgressStreaming(0,base+'第一句。 第二句。');
+        return {complete:text.textContent,reused:old===text.querySelector('.text_segment'),sameAnimation:firstAnimation===old.getAnimations()[0],duration:getComputedStyle(text.querySelector('.text_segment:last-child')).animationDuration,delay:getComputedStyle(old).animationDelay};
+    });
+    assert.equal(fade.complete,'第一句。 第二句。');assert.equal(fade.reused,true);assert.equal(fade.sameAnimation,true);assert.equal(fade.duration,'0.16s');assert.equal(fade.delay,'0s');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    assert.equal(await page.locator('.mes_text .text_segment').first().evaluate(el=>getComputedStyle(el).animationName),'none');
+    await page.emulateMedia({reducedMotion:'no-preference'});
     await page.screenshot({ path: resolve(artifacts,'thinking.png') });
     await page.evaluate(async()=>{const h=harness;await h.p.finalizeIntermediaryMessage(0,h.raw,{unlockUI:false});});
     await page.waitForTimeout(500);
@@ -132,7 +164,7 @@ try {
     assert.equal(await page.locator('.cute-cot-text style').count(),0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     assert.deepEqual(errors,[]);
-    const report={upstream:'TauriTavern v2.2.0 / 2b4de4b8a8aab467d9e75d546be84754918cc026',result,live,animatedHeight:{middle,expanded},virtualized:true,mobileWidth:390,browser:'headless Chrome',errors};
+    const report={upstream:'TauriTavern v2.2.0 / 2b4de4b8a8aab467d9e75d546be84754918cc026',result,live,geometry,fade,animatedHeight:{middle,expanded},virtualized:true,mobileWidth:390,browser:'headless Chrome',errors};
     writeFileSync(resolve(artifacts,'browser-report.json'),JSON.stringify(report,null,2));
     console.log(JSON.stringify(report,null,2));
 } finally {await browser.close();server.close();}

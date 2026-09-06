@@ -11,7 +11,7 @@ Node.js 20+，在仓库根目录执行 `npm test`。
 这比只模拟扩展回调更接近真实接入，但不等于运行完整 APK 或真实模型请求。
 
 1. 将 TauriTavern 仓库检出到 `v2.2.0`。
-2. 在本扩展根目录执行 `npm install --no-save playwright`。
+2. 在本扩展根目录执行 `npm install --no-save playwright morphdom@2.7.7`。
 3. 设置 `TAURITAVERN_SOURCE` 为上游的 `src` 目录，`CHROME_PATH` 为本机 Chrome/Chromium 路径。也可以运行 `npx playwright install chromium` 后省略 `CHROME_PATH`。
 4. 在本扩展根目录运行 `node scripts/test-host.mjs`。
 
@@ -24,6 +24,8 @@ node scripts/test-host.mjs
 ```
 
 测试报告和截图写入 `test-artifacts/`，不纳入 Git。
+
+1.1.0 额外读取上游的 `stream-fadein.js`，配合 morphdom 2.7.7 检查原生文字分段与节点复用。断言新增正文立即完整存在、动画延迟为 0、默认时长为 160ms、已有片段节点和动画对象保持不变、减少动态效果生效。布局夹具包括头像、名字和主题强制按钮装饰，断言思考/正文左侧多余栏宽为 0，思考按钮没有阴影或描边。
 
 脚本会验证正文清理/格式化函数没有接收到思考测试标记，思考面板没有由模型文本产生的 HTML 元素，思考时展开、结束后折叠，手动展开存在动画中间帧，思考视口不超过设定高度且能跟随滚动，虚拟化节点重建后保留独立面板，390px 视口无横向溢出，以及入口模块与设置表单可以使用。
 

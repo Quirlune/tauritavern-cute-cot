@@ -1,7 +1,8 @@
 export const KEY = 'cute_cot';
 export const DEFAULTS = Object.freeze({
-    open: '<think>', close: '</think>', color: '#ed98b4',
-    textColor: '#694852', maxHeight: 180, fontSize: 14,
+    open: '<think>', close: '</think>', color: '#d3a1b7',
+    textColor: '#79616d', maxHeight: 180, fontSize: 14,
+    smoothBody: true, bodyFadeMs: 160, wideLayout: true,
 });
 
 export function validateSettings(value) {
@@ -19,6 +20,9 @@ export function validateSettings(value) {
     }
     s.maxHeight = Math.min(320, Math.max(80, Number(s.maxHeight) || 180));
     s.fontSize = Math.min(22, Math.max(12, Number(s.fontSize) || 14));
+    s.bodyFadeMs = Math.min(260, Math.max(80, Number(s.bodyFadeMs) || 160));
+    s.smoothBody = s.smoothBody !== false;
+    s.wideLayout = s.wideLayout !== false;
     return s;
 }
 

@@ -1,17 +1,17 @@
 .cute-cot {
-    --cot-accent: #ed98b4;
-    --cot-text: #694852;
+    --cot-accent: #d3a1b7;
+    --cot-text: #79616d;
     --cot-limit: 180px;
     --cot-font: 14px;
     width: 100%;
-    margin: 8px 0 14px;
+    margin: 6px 0 8px;
     overflow: hidden;
     color: var(--cot-text);
-    background: #f9e8ee;
-    background: color-mix(in srgb, var(--cot-accent) 22%, #fff 78%);
-    border: 1px solid color-mix(in srgb, var(--cot-accent) 36%, transparent);
-    border-radius: 21px;
-    box-shadow: 0 3px 16px #65364806;
+    background: #f4e7ed;
+    background: color-mix(in srgb, var(--cot-accent) 26%, #fff 74%);
+    border: 0;
+    border-radius: 23px;
+    box-shadow: none;
     text-align: left;
     text-shadow: none;
     box-sizing: border-box;
@@ -32,7 +32,7 @@
     box-shadow: none;
     font: inherit;
     font-size: 14px;
-    letter-spacing: .035em;
+    letter-spacing: .015em;
     text-align: left;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -69,9 +69,9 @@
     overscroll-behavior-y: contain;
     scrollbar-width: thin;
     scrollbar-color: var(--cot-accent) transparent;
-    margin: 0 15px 13px 19px;
+    margin: 0 18px 14px 23px;
     padding: 13px 12px 17px 15px;
-    border-left: 1px solid color-mix(in srgb, var(--cot-accent) 65%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--cot-accent) 45%, transparent);
     box-sizing: border-box;
     -webkit-mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
     mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
@@ -91,10 +91,71 @@
 @keyframes cute-cot-breathe { 50% { opacity: .6; } }
 #cute-cot-settings .cute-cot-fields { display: grid; gap: 12px; padding: 12px 0; }
 #cute-cot-settings label { display: grid; gap: 5px; }
+#cute-cot-settings label.cute-cot-check { display: flex; align-items: center; gap: 8px; }
 #cute-cot-settings .cute-cot-colors { display: flex; flex-wrap: wrap; gap: 24px; }
 #cute-cot-settings input[type="color"] { width: 64px; min-height: 36px; padding: 3px; }
 #cute-cot-settings small { opacity: .75; line-height: 1.6; }
 #cute-cot-settings .cute-cot-error { color: #e7869c; min-height: 1.6em; }
 @media (prefers-reduced-motion: reduce) {
     .cute-cot *, .cute-cot *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Keep third-party themes from turning the panel/header into raised buttons.
+   Only this extension's own surface is reset; native message body styling stays. */
+#chat .mes .cute-cot {
+    background: color-mix(in srgb, var(--cot-accent) 26%, #fff 74%) !important;
+    color: var(--cot-text) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none !important;
+}
+#chat .mes .cute-cot .cute-cot-toggle {
+    background: transparent !important;
+    color: inherit !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+#chat .mes .cute-cot::before, #chat .mes .cute-cot::after,
+#chat .mes .cute-cot-toggle::before, #chat .mes .cute-cot-toggle::after { content: none !important; }
+
+/* Native DOM and message IDs remain intact. Grid places the avatar and header
+   on one row; subsequent children occupy the full width, reclaiming the gutter.
+   Editing and bulk-selection keep the host's existing layout. */
+#chat .mes.cute-cot-wide:has(> .mes_block):not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) {
+    display: grid !important;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: start;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mesAvatarWrapper {
+    grid-column: 1; grid-row: 1;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block {
+    display: contents !important;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > .ch_name {
+    grid-column: 2; grid-row: 1;
+}
+#chat .mes.cute-cot-wide > .mes_block > .mes_text {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+#chat .mes.cute-cot-wide > .mes_block > .mes_text > :first-child { margin-top: 0 !important; }
+
+/* Native morphdom retains existing segments, so only newly inserted text fades.
+   Start partially visible; no delay, blur, layout shift or per-character queue. */
+html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segment {
+    animation: cute-cot-body-appear var(--cute-cot-body-fade, 160ms) ease-out 0s 1 both !important;
+}
+@keyframes cute-cot-body-appear { from { opacity: .38; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segment { animation: none !important; }
 }

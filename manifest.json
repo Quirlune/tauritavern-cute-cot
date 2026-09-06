@@ -6,8 +6,8 @@
   "js": "index.js",
   "css": "style.css",
   "author": "Quirlune",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homePage": "https://github.com/Quirlune/tauritavern-cute-cot",
   "generate_interceptor": "cuteCotExcludeHistory",
-  "hooks": { "activate": "activate" }
+  "hooks": { "activate": "activate", "disable": "disable" }
 }

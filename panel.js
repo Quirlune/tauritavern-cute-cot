@@ -12,6 +12,7 @@ export function applyTheme(root, settings) {
  * Detached virtualized messages and their listeners are collected together.
  */
 export function renderPanel(messageElement, record, settings) {
+    messageElement.classList.toggle('cute-cot-wide', Boolean(record && settings.wideLayout));
     let ui = panels.get(messageElement);
     if (!record) {
         ui?.root.remove();
