@@ -123,33 +123,28 @@
 #chat .mes .cute-cot::before, #chat .mes .cute-cot::after,
 #chat .mes .cute-cot-toggle::before, #chat .mes .cute-cot-toggle::after { content: none !important; }
 
-/* Native DOM and message IDs remain intact. Grid places the avatar and header
-   on one row; subsequent children occupy the full width, reclaiming the gutter.
-   Editing and bulk-selection keep the host's existing layout. */
-#chat .mes.cute-cot-wide:has(> .mes_block):not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) {
-    display: grid !important;
-    grid-template-columns: max-content minmax(0, 1fr);
-    column-gap: 10px;
-    align-items: start;
+/* The slot alone reserves height; the dock lives in the existing avatar column. */
+.cute-cot-slot { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .42s cubic-bezier(.22,1,.36,1); }
+.cute-cot-slot[data-open="true"] { grid-template-rows: 1fr; }
+.cute-cot-shell { min-height: 0; overflow: hidden; }
+.cute-cot-slot .cute-cot { opacity: 0; transform: translate(-8px,-4px) scale(.97); transform-origin: top left; transition: opacity .25s ease, transform .42s cubic-bezier(.22,1,.36,1); }
+.cute-cot-slot[data-open="true"] .cute-cot { opacity: 1; transform: none; }
+#chat .mes .cute-cot-dock {
+    display: block; width: 30px; min-height: 60px; padding: 9px 6px; margin: 8px auto 0;
+    writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px;
+    font: 12px/1.4 system-ui; color: var(--cot-text) !important;
+    background: color-mix(in srgb, var(--cot-accent) 26%, #fff 74%) !important;
+    border: 0 !important; border-radius: 14px; box-shadow: none !important;
+    filter: none !important; text-shadow: none !important; cursor: pointer;
+    touch-action: manipulation;
 }
-#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mesAvatarWrapper {
-    grid-column: 1; grid-row: 1;
+#chat .mes .cute-cot-dock[hidden] { display: none !important; }
+#chat .mes .cute-cot-dock-fallback { float: right; writing-mode: horizontal-tb; width: 44px; min-height: 32px; }
+#chat .mes .cute-cot-dock::before, #chat .mes .cute-cot-dock::after { content: none !important; }
+.cute-cot-dock:focus-visible { outline: 2px solid var(--cot-text); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+    .cute-cot-slot, .cute-cot-slot .cute-cot { transition: none !important; }
 }
-#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block {
-    display: contents !important;
-}
-#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > * {
-    grid-column: 1 / -1;
-    min-width: 0;
-}
-#chat .mes.cute-cot-wide:not(:has(.edit_textarea)):not(:has(.del_checkbox:checked)) > .mes_block > .ch_name {
-    grid-column: 2; grid-row: 1;
-}
-#chat .mes.cute-cot-wide > .mes_block > .mes_text {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-#chat .mes.cute-cot-wide > .mes_block > .mes_text > :first-child { margin-top: 0 !important; }
 
 /* Native morphdom retains existing segments, so only newly inserted text fades.
    Start partially visible; no delay, blur, layout shift or per-character queue. */
@@ -161,13 +156,13 @@ html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segme
     html.cute-cot-smooth-body #chat .mes:not([is_user="true"]) .mes_text .text_segment { animation: none !important; }
 }
 
-*{box-sizing:border-box}body{margin:0;background:#faf7f8;color:#533f47;font:15px/1.8 system-ui,"Microsoft YaHei",sans-serif}.page{max-width:640px;margin:auto;padding:36px 22px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:21px;font-weight:650;letter-spacing:.1em}.badge{font-size:11px;color:#997982;border:1px solid #eddde3;border-radius:20px;padding:3px 10px}.intro{color:#a18a93;font-size:13px;margin:0 0 35px}.user{margin:0 0 30px auto;width:fit-content;max-width:88%;padding:13px 20px;background:#f1e8ee;border-radius:20px 20px 5px 20px}.name{display:flex;align-items:center;gap:10px;margin:20px 0 12px;font-size:14px}.avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#eec4d3;color:#fff}.mes_text{min-height:70px;padding:3px 4px;line-height:1.9}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;border-top:1px solid #ecdee3;padding-top:22px}.controls button{font:inherit;border:1px solid #e8cbd6;border-radius:20px;background:#fff8fb;color:#805866;padding:7px 16px;cursor:pointer}.controls label{display:flex;align-items:center;gap:8px;font-size:13px;color:#947783}.controls input{width:32px;height:32px;border:0;background:transparent}.note{font-size:12px;color:#a18a93;margin-top:18px}.cute-cot{margin-top:0}
-</style><main class="page"><header><span class="brand">花笺</span><span class="badge">自定义思考 · 交互预览</span></header><p class="intro">给思绪一点空间，也给正文留一点轻盈。</p><div class="user">帮我写一句轻柔的晚安问候。</div><div class="name"><span class="avatar">Q</span><span>Quirlune</span></div><article class="mes"><div class="mes_text"></div></article><div class="controls"><button id="replay">重新播放</button><button id="stop">停止思考</button><label>配色<input id="color" type="color" value="#ed98b4"></label></div><p class="note">思考中自动跟随最新文字；上下滑动可回看，结束后自动收起。<br>此页使用扩展的同一份面板代码，演示文字为模拟数据。</p></main>
+*{box-sizing:border-box}body{margin:0;background:#faf7f8;color:#533f47;font:15px/1.8 system-ui,"Microsoft YaHei",sans-serif}.page{max-width:640px;margin:auto;padding:36px 22px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:21px;font-weight:650;letter-spacing:.1em}.badge{font-size:11px;color:#997982;border:1px solid #eddde3;border-radius:20px;padding:3px 10px}.intro{color:#a18a93;font-size:13px;margin:0 0 35px}.user{margin:0 0 30px auto;width:fit-content;max-width:88%;padding:13px 20px;background:#f1e8ee;border-radius:20px 20px 5px 20px}.name{display:flex;align-items:center;gap:10px;margin:20px 0 12px;font-size:14px}.avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#eec4d3;color:#fff}.mes_text{min-height:70px;padding:3px 4px;line-height:1.9}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;border-top:1px solid #ecdee3;padding-top:22px}.controls button{font:inherit;border:1px solid #e8cbd6;border-radius:20px;background:#fff8fb;color:#805866;padding:7px 16px;cursor:pointer}.controls label{display:flex;align-items:center;gap:8px;font-size:13px;color:#947783}.controls input{width:32px;height:32px;border:0;background:transparent}.note{font-size:12px;color:#a18a93;margin-top:18px}.cute-cot{margin-top:0}.mes{display:flex;align-items:flex-start}.mesAvatarWrapper{flex:0 0 40px}.mes_block{min-width:0;flex:1;padding-left:10px;overflow:hidden}.ch_name{height:40px}.mes .avatar{width:40px;height:40px}
+</style><main class="page"><header><span class="brand">花笺</span><span class="badge">自定义思考 · 交互预览</span></header><p class="intro">给思绪一点空间，也给正文留一点轻盈。</p><div class="user">帮我写一句轻柔的晚安问候。</div><article class="mes"><div class="mesAvatarWrapper"><span class="avatar">Q</span></div><div class="mes_block"><div class="ch_name">Quirlune</div><div class="mes_text"></div></div></article><div class="controls"><button id="replay">重新播放</button><button id="stop">停止思考</button><label>配色<input id="color" type="color" value="#ed98b4"></label></div><p class="note">思考中自动跟随最新文字；上下滑动可回看，结束后自动收起。<br>此页使用扩展的同一份面板代码，演示文字为模拟数据。</p></main>
 <script type="module">const KEY = 'cute_cot';
 const DEFAULTS = Object.freeze({
     open: '<think>', close: '</think>', color: '#d3a1b7',
     textColor: '#79616d', maxHeight: 180, fontSize: 14,
-    smoothBody: true, bodyFadeMs: 160, wideLayout: true,
+    smoothBody: true, bodyFadeMs: 160,
 });
 
 function validateSettings(value) {
@@ -187,7 +182,7 @@ function validateSettings(value) {
     s.fontSize = Math.min(22, Math.max(12, Number(s.fontSize) || 14));
     s.bodyFadeMs = Math.min(260, Math.max(80, Number(s.bodyFadeMs) || 160));
     s.smoothBody = s.smoothBody !== false;
-    s.wideLayout = s.wideLayout !== false;
+    delete s.wideLayout; // Retire the 1.1 layout override, including saved settings.
     return s;
 }
 
@@ -282,15 +277,27 @@ function applyTheme(root, settings) {
 /** One panel per native message element; no document observer or persistent timer.
  * Detached virtualized messages and their listeners are collected together.
  */
-function renderPanel(messageElement, record, settings) {
-    messageElement.classList.toggle('cute-cot-wide', Boolean(record && settings.wideLayout));
+function renderPanel(messageElement, record, settings, identity) {
+    messageElement.classList.remove('cute-cot-wide');
     let ui = panels.get(messageElement);
+    if (ui && identity && (ui.message !== identity.message || ui.swipeId !== identity.swipeId)) {
+        ui.slot.remove(); ui.dock.remove(); panels.delete(messageElement); ui = null;
+    }
     if (!record) {
-        ui?.root.remove();
+        messageElement.querySelectorAll('.cute-cot-slot, .cute-cot-dock, .cute-cot').forEach(node => node.remove());
         panels.delete(messageElement);
         return;
     }
     if (!ui || !messageElement.contains(ui.root)) {
+        messageElement.querySelectorAll('.cute-cot-slot, .cute-cot-dock, .cute-cot').forEach(node => node.remove());
+        const slot = document.createElement('div');
+        slot.className = 'cute-cot-slot';
+        const shell = document.createElement('div');
+        shell.className = 'cute-cot-shell';
+        slot.append(shell);
+        const dock = document.createElement('button');
+        dock.type = 'button'; dock.className = 'cute-cot-dock';
+        dock.textContent = 'COT'; dock.setAttribute('aria-label', '展开思考');
         const root = document.createElement('section');
         root.className = 'cute-cot';
         const button = document.createElement('button');
@@ -320,10 +327,16 @@ function renderPanel(messageElement, record, settings) {
         root.append(button, reveal);
         const anchor = messageElement.querySelector('.mes_text');
         if (!anchor) return;
-        anchor.before(root);
-        ui = { root, button, label, reveal, viewport, text, status: null, open: false, follow: true };
+        shell.append(root);
+        anchor.before(slot);
+        const avatar = messageElement.querySelector('.mesAvatarWrapper');
+        (avatar ?? anchor.parentElement).append(dock);
+        if (!avatar) dock.classList.add('cute-cot-dock-fallback');
+        dock.setAttribute('aria-controls', reveal.id);
+        ui = { slot, dock, message: identity?.message, swipeId: identity?.swipeId, root, button, label, reveal, viewport, text, status: null, open: false, follow: true };
         panels.set(messageElement, ui);
-        button.addEventListener('click', () => setExpanded(ui, !ui.open));
+        button.addEventListener('click', () => { setExpanded(ui, false); ui.dock.focus({ preventScroll: true }); });
+        dock.addEventListener('click', () => { setExpanded(ui, true); ui.button.focus({ preventScroll: true }); });
         // User scrolling up suspends following. No timer needs to survive unmount.
         viewport.addEventListener('wheel', event => { if (event.deltaY < 0) ui.follow = false; }, { passive: true });
         let touchY = 0;
@@ -336,6 +349,7 @@ function renderPanel(messageElement, record, settings) {
         }, { passive: true });
     }
     applyTheme(ui.root, settings);
+    applyTheme(ui.dock, settings);
     const thinking = record.status === 'thinking';
     ui.root.dataset.thinking = String(thinking);
     ui.label.textContent = thinking ? '思考中…' : record.status === 'interrupted' ? '思考已停止' : '思考完成';
@@ -367,6 +381,10 @@ function renderPanel(messageElement, record, settings) {
 function setExpanded(ui, open) {
     ui.open = open;
     ui.root.dataset.open = String(open);
+    ui.slot.dataset.open = String(open);
+    ui.slot.inert = !open;
+    ui.dock.hidden = open;
+    ui.dock.setAttribute('aria-expanded', String(open));
     ui.button.setAttribute('aria-expanded', String(open));
     ui.reveal.setAttribute('aria-hidden', String(!open));
     ui.viewport.tabIndex = open ? 0 : -1;
@@ -378,6 +396,6 @@ const node=document.querySelector('.mes'),body=node.querySelector('.mes_text');
 let settings={...DEFAULTS},timer,record,started;
 const thought='先考虑语气：温柔、自然，不要过度亲昵。\n把忙碌的一天轻轻放下，留一个可以安静休息的画面。\n\n可以选月光、窗边或一阵晚风，但不需要堆叠修饰词。\n思考区只展示原文。下面这些标记也不会变成样式或组件：\n<style>body { display: none; }</style>\n<note>这是一段普通文本</note>\n**这里也不会变成加粗**\n\n最后用一句简短的祝愿收尾，保持自然的节奏。\n让烦恼先暂停，明天的事情交给明天。';
 function showBody(){const reply='愿今晚的月光替你把烦恼放轻。好好休息，明天醒来，又是柔软崭新的一天。';let n=0;timer=setInterval(()=>{const span=document.createElement('span');span.className='text_segment';span.textContent=reply.slice(n,n+4);body.append(span);n+=4;if(n>=reply.length)clearInterval(timer);},90);}
-function play(){clearInterval(timer);node.querySelector('.cute-cot')?.remove();body.textContent='';started=Date.now();let i=0;record={status:'thinking',text:'',duration:null};renderPanel(node,record,settings);timer=setInterval(()=>{i+=5;record.text=thought.slice(0,i);renderPanel(node,record,settings);if(i>=thought.length){clearInterval(timer);record.status='done';record.duration=Date.now()-started;renderPanel(node,record,settings);showBody();}},90);}
+function play(){clearInterval(timer);renderPanel(node,null,settings);body.textContent='';started=Date.now();let i=0;record={status:'thinking',text:'',duration:null};renderPanel(node,record,settings);timer=setInterval(()=>{i+=5;record.text=thought.slice(0,i);renderPanel(node,record,settings);if(i>=thought.length){clearInterval(timer);record.status='done';record.duration=Date.now()-started;renderPanel(node,record,settings);showBody();}},90);}
 document.querySelector('#replay').onclick=play;document.querySelector('#stop').onclick=()=>{clearInterval(timer);if(record.status==='thinking'){record.status='interrupted';record.duration=Date.now()-started;renderPanel(node,record,settings);}};document.querySelector('#color').oninput=e=>{settings.color=e.target.value;renderPanel(node,record,settings);};play();
 </script></html>

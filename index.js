@@ -38,7 +38,6 @@ export function activate() {
         <div class="cute-cot-colors"><label>面板颜色<input data-key="color" type="color"></label><label>文字颜色<input data-key="textColor" type="color"></label></div>
         <label>思考区域最大高度（像素）<input data-key="maxHeight" class="text_pole" type="number" min="80" max="320" step="10"></label>
         <label>思考文字大小（像素）<input data-key="fontSize" class="text_pole" type="number" min="12" max="22"></label>
-        <label class="cute-cot-check"><input data-key="wideLayout" type="checkbox">头像下方铺开正文，收回左侧空白</label>
         <label class="cute-cot-check"><input data-key="smoothBody" type="checkbox">正文平滑浮现（启用酒馆原生流式淡入）</label>
         <label>正文淡入时长（毫秒）<input data-key="bodyFadeMs" class="text_pole" type="number" min="80" max="260" step="20"></label>
         <small>默认 160 毫秒，收到即显示，不排队逐字播放。关闭平滑时恢复启用前的酒馆淡入设置。</small>
@@ -65,9 +64,9 @@ export function activate() {
             configureBodyFade(getContext(), settings);
             getContext().extensionSettings.cute_cot = { ...settings };
             getContext().saveSettingsDebounced();
-            for (const panel of document.querySelectorAll('.cute-cot')) applyTheme(panel, settings);
+            for (const panel of document.querySelectorAll('.cute-cot, .cute-cot-dock')) applyTheme(panel, settings);
             for (const row of document.querySelectorAll('#chat .mes')) {
-                row.classList.toggle('cute-cot-wide', settings.wideLayout && Boolean(row.querySelector('.cute-cot')));
+                row.classList.remove('cute-cot-wide');
             }
             status.textContent = '已保存';
         } catch (error) { status.textContent = error.message; }

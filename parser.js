@@ -2,7 +2,7 @@ export const KEY = 'cute_cot';
 export const DEFAULTS = Object.freeze({
     open: '<think>', close: '</think>', color: '#d3a1b7',
     textColor: '#79616d', maxHeight: 180, fontSize: 14,
-    smoothBody: true, bodyFadeMs: 160, wideLayout: true,
+    smoothBody: true, bodyFadeMs: 160,
 });
 
 export function validateSettings(value) {
@@ -22,7 +22,7 @@ export function validateSettings(value) {
     s.fontSize = Math.min(22, Math.max(12, Number(s.fontSize) || 14));
     s.bodyFadeMs = Math.min(260, Math.max(80, Number(s.bodyFadeMs) || 160));
     s.smoothBody = s.smoothBody !== false;
-    s.wideLayout = s.wideLayout !== false;
+    delete s.wideLayout; // Retire the 1.1 layout override, including saved settings.
     return s;
 }
 

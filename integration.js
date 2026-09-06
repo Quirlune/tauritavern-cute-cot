@@ -19,15 +19,29 @@ export function installIntegration({ getContext, ReasoningHandler, getSettings, 
     const active = new Set();
     const wrapped = new WeakSet();
     const streamStates = new WeakMap();
+    // The host resets reasoning BEFORE waiting for a new swipe's first token.
+    const resetting = new WeakSet();
+    const init = ReasoningHandler.prototype.initHandleMessage;
+    if (typeof init === 'function') {
+        ReasoningHandler.prototype.initHandleMessage = function (element, options) {
+            if (options?.reset) resetting.add(this);
+            try { return init.call(this, element, options); }
+            finally { resetting.delete(this); }
+        };
+    }
+    function project(element, message, record) {
+        render(element, record, getSettings(), { message, swipeId: message?.swipe_id });
+    }
     const originalUpdateDom = ReasoningHandler.prototype.updateDom;
     ReasoningHandler.prototype.updateDom = function (messageId, options) {
         // The native renderer never receives our archive as its reasoning input.
         const result = originalUpdateDom.call(this, messageId, options);
         const current = getContext();
-        const record = current.chat[messageId]?.extra?.[KEY];
+        const message = current.chat[messageId];
+        const record = resetting.has(this) ? null : message?.extra?.[KEY];
         const display = record?.status === 'thinking' && current.streamingProcessor?.messageId !== Number(messageId)
             ? { ...record, status: 'interrupted' } : record;
-        if (this.messageDom) render(this.messageDom, display, getSettings());
+        if (this.messageDom) project(this.messageDom, message, display);
         return result;
     };
 
@@ -94,7 +108,7 @@ export function installIntegration({ getContext, ReasoningHandler, getSettings, 
             }
             // The original method retains normal body formatting, counters and save behavior.
             const result = await progress.call(this, id, parsed.body, final);
-            if (this.messageDom) render(this.messageDom, current.extra?.[KEY], getSettings());
+            if (this.messageDom) project(this.messageDom, current, current.extra?.[KEY]);
             return result;
         };
         const finalize = processor.finalizeIntermediaryMessage;
@@ -131,7 +145,7 @@ export function installIntegration({ getContext, ReasoningHandler, getSettings, 
             message.extra[KEY] = { ...message.extra[KEY], status: 'interrupted', duration: now() - state.started };
         }
         syncSwipe(message);
-        if (processor.messageDom) render(processor.messageDom, message.extra?.[KEY], getSettings());
+        if (processor.messageDom) project(processor.messageDom, message, message.extra?.[KEY]);
     }
 
     const { eventSource: events, eventTypes: types } = ctx;

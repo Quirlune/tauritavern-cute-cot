@@ -103,8 +103,8 @@ try {
         const button=getComputedStyle(document.querySelector('.cute-cot-toggle'));
         return {gutter:panel.left-row.left,bodyGutter:body.left-row.left,panelWidth:panel.width,rowWidth:row.width,buttonShadow:button.boxShadow,buttonBorder:button.borderTopWidth,buttonBackground:button.backgroundColor};
     });
-    assert.ok(Math.abs(geometry.gutter)<1 && Math.abs(geometry.bodyGutter)<1);
-    assert.ok(Math.abs(geometry.rowWidth-geometry.panelWidth)<1);
+    assert.ok(geometry.bodyGutter > 50 && Math.abs(geometry.gutter-geometry.bodyGutter)<1);
+    assert.ok(geometry.panelWidth < geometry.rowWidth-50);
     assert.equal(geometry.buttonShadow,'none');assert.equal(geometry.buttonBorder,'0px');assert.equal(geometry.buttonBackground,'rgba(0, 0, 0, 0)');
     // Verify the actual host segmentation/morphdom helper and CSS together.
     const fade=await page.evaluate(async()=>{
@@ -125,12 +125,39 @@ try {
     assert.equal(await page.locator('.cute-cot-toggle').getAttribute('aria-expanded'),'false');
     assert.equal(await page.locator('.mes_text').textContent(),'正文仍然正常显示。');
     await page.screenshot({ path: resolve(artifacts,'collapsed.png') });
-    await page.locator('.cute-cot-toggle').click();
+    const collapsedBody = await page.locator('.mes_text').boundingBox();
+    assert.equal(await page.locator('.cute-cot-slot').evaluate(el=>el.getBoundingClientRect().height),0);
+    const dockBox = await page.locator('.cute-cot-dock').boundingBox();
+    assert.ok(dockBox.x+dockBox.width <= collapsedBody.x);
+    await page.locator('.cute-cot-dock').click();
     await page.waitForTimeout(80);
     const middle = await page.locator('.cute-cot-reveal').evaluate(el=>el.getBoundingClientRect().height);
     await page.waitForTimeout(500);
     const expanded = await page.locator('.cute-cot-reveal').evaluate(el=>el.getBoundingClientRect().height);
     assert.ok(middle>0 && middle<expanded, `animated height: ${middle} / ${expanded}`);
+    const expandedBody = await page.locator('.mes_text').boundingBox();
+    assert.equal(expandedBody.x, collapsedBody.x);
+    assert.equal(expandedBody.width, collapsedBody.width);
+    assert.ok(expandedBody.y > collapsedBody.y+100);
+    const swipes = await page.evaluate(()=>{
+        const h=harness, row=document.querySelector('.mes'), message=h.ctx.chat[0];
+        const archive=message.extra.cute_cot;
+        new h.ReasoningHandler().initHandleMessage(row,{reset:true});
+        const cleared=!row.querySelector('.cute-cot, .cute-cot-slot, .cute-cot-dock');
+        const preserved=message.extra.cute_cot===archive;
+        new h.ReasoningHandler().initHandleMessage(row);
+        message.swipe_id=1;
+        message.extra.cute_cot={...archive,text:'Second candidate'};
+        new h.ReasoningHandler().initHandleMessage(row);
+        const switched=row.querySelector('.cute-cot-text').textContent==='Second candidate' && row.querySelector('.cute-cot').dataset.open==='false';
+        delete message.extra.cute_cot;
+        new h.ReasoningHandler().initHandleMessage(row);
+        const empty=!row.querySelector('.cute-cot, .cute-cot-dock');
+        message.swipe_id=0;message.extra.cute_cot=archive;
+        new h.ReasoningHandler().initHandleMessage(row);
+        return {cleared,preserved,switched,empty};
+    });
+    assert.deepEqual(swipes,{cleared:true,preserved:true,switched:true,empty:true});
     const virtualized = await page.evaluate(()=>{
         const h=harness;
         const row=document.querySelector('.mes');

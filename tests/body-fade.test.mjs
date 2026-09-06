@@ -41,12 +41,12 @@ test('switching smooth option off restores native fade independently of layout',
     settings.smoothBody = false;
     configureBodyFade(f.context, settings);
     assert.equal(f.context.powerUserSettings.stream_fade_in, false);
-    assert.equal(settings.wideLayout, true);
+    assert.equal(settings.wideLayout, undefined);
 });
 test('new settings migrate missing fields, respect false and bound duration', () => {
     assert.equal(validateSettings({}).bodyFadeMs, 160);
     assert.equal(validateSettings({ bodyFadeMs: 999 }).bodyFadeMs, 260);
     assert.equal(validateSettings({ bodyFadeMs: 1 }).bodyFadeMs, 80);
     assert.equal(validateSettings({ smoothBody: false }).smoothBody, false);
-    assert.equal(validateSettings({ wideLayout: false }).wideLayout, false);
+    assert.equal(validateSettings({ wideLayout: true }).wideLayout, undefined);
 });

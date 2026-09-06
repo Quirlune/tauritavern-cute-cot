@@ -11,15 +11,27 @@ export function applyTheme(root, settings) {
 /** One panel per native message element; no document observer or persistent timer.
  * Detached virtualized messages and their listeners are collected together.
  */
-export function renderPanel(messageElement, record, settings) {
-    messageElement.classList.toggle('cute-cot-wide', Boolean(record && settings.wideLayout));
+export function renderPanel(messageElement, record, settings, identity) {
+    messageElement.classList.remove('cute-cot-wide');
     let ui = panels.get(messageElement);
+    if (ui && identity && (ui.message !== identity.message || ui.swipeId !== identity.swipeId)) {
+        ui.slot.remove(); ui.dock.remove(); panels.delete(messageElement); ui = null;
+    }
     if (!record) {
-        ui?.root.remove();
+        messageElement.querySelectorAll('.cute-cot-slot, .cute-cot-dock, .cute-cot').forEach(node => node.remove());
         panels.delete(messageElement);
         return;
     }
     if (!ui || !messageElement.contains(ui.root)) {
+        messageElement.querySelectorAll('.cute-cot-slot, .cute-cot-dock, .cute-cot').forEach(node => node.remove());
+        const slot = document.createElement('div');
+        slot.className = 'cute-cot-slot';
+        const shell = document.createElement('div');
+        shell.className = 'cute-cot-shell';
+        slot.append(shell);
+        const dock = document.createElement('button');
+        dock.type = 'button'; dock.className = 'cute-cot-dock';
+        dock.textContent = 'COT'; dock.setAttribute('aria-label', '展开思考');
         const root = document.createElement('section');
         root.className = 'cute-cot';
         const button = document.createElement('button');
@@ -49,10 +61,16 @@ export function renderPanel(messageElement, record, settings) {
         root.append(button, reveal);
         const anchor = messageElement.querySelector('.mes_text');
         if (!anchor) return;
-        anchor.before(root);
-        ui = { root, button, label, reveal, viewport, text, status: null, open: false, follow: true };
+        shell.append(root);
+        anchor.before(slot);
+        const avatar = messageElement.querySelector('.mesAvatarWrapper');
+        (avatar ?? anchor.parentElement).append(dock);
+        if (!avatar) dock.classList.add('cute-cot-dock-fallback');
+        dock.setAttribute('aria-controls', reveal.id);
+        ui = { slot, dock, message: identity?.message, swipeId: identity?.swipeId, root, button, label, reveal, viewport, text, status: null, open: false, follow: true };
         panels.set(messageElement, ui);
-        button.addEventListener('click', () => setExpanded(ui, !ui.open));
+        button.addEventListener('click', () => { setExpanded(ui, false); ui.dock.focus({ preventScroll: true }); });
+        dock.addEventListener('click', () => { setExpanded(ui, true); ui.button.focus({ preventScroll: true }); });
         // User scrolling up suspends following. No timer needs to survive unmount.
         viewport.addEventListener('wheel', event => { if (event.deltaY < 0) ui.follow = false; }, { passive: true });
         let touchY = 0;
@@ -65,6 +83,7 @@ export function renderPanel(messageElement, record, settings) {
         }, { passive: true });
     }
     applyTheme(ui.root, settings);
+    applyTheme(ui.dock, settings);
     const thinking = record.status === 'thinking';
     ui.root.dataset.thinking = String(thinking);
     ui.label.textContent = thinking ? '思考中…' : record.status === 'interrupted' ? '思考已停止' : '思考完成';
@@ -96,6 +115,10 @@ export function renderPanel(messageElement, record, settings) {
 function setExpanded(ui, open) {
     ui.open = open;
     ui.root.dataset.open = String(open);
+    ui.slot.dataset.open = String(open);
+    ui.slot.inert = !open;
+    ui.dock.hidden = open;
+    ui.dock.setAttribute('aria-expanded', String(open));
     ui.button.setAttribute('aria-expanded', String(open));
     ui.reveal.setAttribute('aria-hidden', String(!open));
     ui.viewport.tabIndex = open ? 0 : -1;
