@@ -1,0 +1,315 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>花笺 · 思考面板预览</title>
+<style>.cute-cot {
+    --cot-accent: #ed98b4;
+    --cot-text: #694852;
+    --cot-limit: 180px;
+    --cot-font: 14px;
+    width: 100%;
+    margin: 8px 0 14px;
+    overflow: hidden;
+    color: var(--cot-text);
+    background: #f9e8ee;
+    background: color-mix(in srgb, var(--cot-accent) 22%, #fff 78%);
+    border: 1px solid color-mix(in srgb, var(--cot-accent) 36%, transparent);
+    border-radius: 21px;
+    box-shadow: 0 3px 16px #65364806;
+    text-align: left;
+    text-shadow: none;
+    box-sizing: border-box;
+}
+.cute-cot .cute-cot-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    margin: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 20px;
+    box-shadow: none;
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: .035em;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.cute-cot-toggle:focus-visible, .cute-cot-viewport:focus-visible {
+    outline: 2px solid var(--cot-text);
+    outline-offset: -3px;
+}
+.cute-cot-chevron {
+    flex: 0 0 8px;
+    height: 8px;
+    margin-right: 3px;
+    border-right: 1.7px solid currentColor;
+    border-bottom: 1.7px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform .38s cubic-bezier(.22, 1, .36, 1);
+    opacity: .65;
+}
+.cute-cot[data-open="true"] .cute-cot-chevron { transform: rotate(225deg) translate(-2px, -1px); }
+.cute-cot-reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows .42s cubic-bezier(.22, 1, .36, 1), opacity .28s ease;
+}
+.cute-cot[data-open="true"] .cute-cot-reveal { grid-template-rows: 1fr; opacity: 1; }
+.cute-cot-clip { min-height: 0; overflow: hidden; }
+.cute-cot-viewport {
+    transition: height .28s ease;
+    max-height: var(--cot-limit);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cot-accent) transparent;
+    margin: 0 15px 13px 19px;
+    padding: 13px 12px 17px 15px;
+    border-left: 1px solid color-mix(in srgb, var(--cot-accent) 65%, transparent);
+    box-sizing: border-box;
+    -webkit-mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(transparent, #000 17px, #000 calc(100% - 18px), transparent);
+}
+.cute-cot-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    font: inherit;
+    font-size: var(--cot-font);
+    line-height: 1.85;
+    letter-spacing: .025em;
+    color: inherit;
+    user-select: text;
+}
+.cute-cot[data-thinking="true"] .cute-cot-label { animation: cute-cot-breathe 2.5s ease-in-out infinite; }
+@keyframes cute-cot-breathe { 50% { opacity: .6; } }
+#cute-cot-settings .cute-cot-fields { display: grid; gap: 12px; padding: 12px 0; }
+#cute-cot-settings label { display: grid; gap: 5px; }
+#cute-cot-settings .cute-cot-colors { display: flex; flex-wrap: wrap; gap: 24px; }
+#cute-cot-settings input[type="color"] { width: 64px; min-height: 36px; padding: 3px; }
+#cute-cot-settings small { opacity: .75; line-height: 1.6; }
+#cute-cot-settings .cute-cot-error { color: #e7869c; min-height: 1.6em; }
+@media (prefers-reduced-motion: reduce) {
+    .cute-cot *, .cute-cot *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+*{box-sizing:border-box}body{margin:0;background:#faf7f8;color:#533f47;font:15px/1.8 system-ui,"Microsoft YaHei",sans-serif}.page{max-width:640px;margin:auto;padding:36px 22px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:21px;font-weight:650;letter-spacing:.1em}.badge{font-size:11px;color:#997982;border:1px solid #eddde3;border-radius:20px;padding:3px 10px}.intro{color:#a18a93;font-size:13px;margin:0 0 35px}.user{margin:0 0 30px auto;width:fit-content;max-width:88%;padding:13px 20px;background:#f1e8ee;border-radius:20px 20px 5px 20px}.name{display:flex;align-items:center;gap:10px;margin:20px 0 12px;font-size:14px}.avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#eec4d3;color:#fff}.mes_text{min-height:70px;padding:3px 4px;line-height:1.9}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;border-top:1px solid #ecdee3;padding-top:22px}.controls button{font:inherit;border:1px solid #e8cbd6;border-radius:20px;background:#fff8fb;color:#805866;padding:7px 16px;cursor:pointer}.controls label{display:flex;align-items:center;gap:8px;font-size:13px;color:#947783}.controls input{width:32px;height:32px;border:0;background:transparent}.note{font-size:12px;color:#a18a93;margin-top:18px}.cute-cot{margin-top:0}
+</style><main class="page"><header><span class="brand">花笺</span><span class="badge">自定义思考 · 交互预览</span></header><p class="intro">给思绪一点空间，也给正文留一点轻盈。</p><div class="user">帮我写一句轻柔的晚安问候。</div><div class="name"><span class="avatar">Q</span><span>Quirlune</span></div><article class="mes"><div class="mes_text"></div></article><div class="controls"><button id="replay">重新播放</button><button id="stop">停止思考</button><label>配色<input id="color" type="color" value="#ed98b4"></label></div><p class="note">思考中自动跟随最新文字；上下滑动可回看，结束后自动收起。<br>此页使用扩展的同一份面板代码，演示文字为模拟数据。</p></main>
+<script type="module">const KEY = 'cute_cot';
+const DEFAULTS = Object.freeze({
+    open: '<think>', close: '</think>', color: '#ed98b4',
+    textColor: '#694852', maxHeight: 180, fontSize: 14,
+});
+
+function validateSettings(value) {
+    const s = { ...DEFAULTS, ...value };
+    for (const key of ['open', 'close']) {
+        if (typeof s[key] !== 'string' || !s[key].trim() || s[key].length > 128) {
+            throw new Error('起止标记不能为空，且不能超过 128 个字符。');
+        }
+    }
+    if (s.open === s.close || s.open.includes(s.close) || s.close.includes(s.open)) {
+        throw new Error('起止标记不能相同，也不能互相包含。');
+    }
+    for (const key of ['color', 'textColor']) {
+        if (!/^#[\da-f]{6}$/i.test(s[key])) throw new Error('请选择有效的颜色。');
+    }
+    s.maxHeight = Math.min(320, Math.max(80, Number(s.maxHeight) || 180));
+    s.fontSize = Math.min(22, Math.max(12, Number(s.fontSize) || 14));
+    return s;
+}
+
+function partialSuffix(text, marker) {
+    for (let n = Math.min(text.length, marker.length - 1); n > 0; n--) {
+        if (text.endsWith(marker.slice(0, n))) return n;
+    }
+    return 0;
+}
+
+/** Literal, case-sensitive delimiters. Content is never interpreted as HTML/XML/Markdown.
+ * Cumulative snapshots allow token boundaries, replacements and regenerated text.
+ * A partial opening delimiter is withheld while streaming and restored at EOF.
+ * An unclosed block stays private even after stop/error/EOF.
+ */
+function splitThoughts(text, settings = DEFAULTS, streaming = false) {
+    text = typeof text === 'string' ? text : '';
+    const { open, close } = settings;
+    if (!open || !close || open === close) throw new Error('Invalid delimiters');
+    const body = [], thoughts = [];
+    let cursor = 0, found = false, incomplete = false, pending = '';
+    while (cursor < text.length) {
+        const start = text.indexOf(open, cursor);
+        if (start < 0) {
+            const tail = text.slice(cursor);
+            const n = streaming ? partialSuffix(tail, open) : 0;
+            body.push(n ? tail.slice(0, -n) : tail);
+            pending = n ? tail.slice(-n) : '';
+            break;
+        }
+        found = true;
+        body.push(text.slice(cursor, start));
+        const end = text.indexOf(close, start + open.length);
+        if (end < 0) {
+            const tail = text.slice(start + open.length);
+            const n = streaming ? partialSuffix(tail, close) : 0;
+            thoughts.push(n ? tail.slice(0, -n) : tail);
+            incomplete = true;
+            break;
+        }
+        thoughts.push(text.slice(start + open.length, end));
+        cursor = end + close.length;
+    }
+    return { body: body.join(''), thought: thoughts.join('\n\n'), found, incomplete, pending };
+}
+
+function makeRecord(parsed, settings, duration = null, final = true) {
+    return {
+        version: 1, text: parsed.thought,
+        open: settings.open, close: settings.close,
+        status: parsed.incomplete ? (final ? 'interrupted' : 'thinking') : 'done',
+        duration,
+    };
+}
+
+/** Remove custom archives from the generation COPY, never from the stored chat. */
+function excludeHistory(messages, settings) {
+    for (const message of messages ?? []) {
+        if (!message || message.is_user || message.is_system) continue;
+        const record = message.extra?.[KEY];
+        const markers = record?.open && record?.close ? record : settings;
+        message.mes = splitThoughts(message.mes, markers).body;
+        if (message.extra) {
+            message.extra = { ...message.extra };
+            delete message.extra[KEY];
+        }
+        // Alternative replies are not part of the prompt; do not expose archives
+        // to downstream interceptors that enumerate the complete message object.
+        if (message.swipe_info) {
+            message.swipe_info = message.swipe_info.map(info => {
+                const extra = { ...info?.extra };
+                delete extra[KEY];
+                return { ...info, extra };
+            });
+        }
+        if (Array.isArray(message.swipes)) {
+            message.swipes = message.swipes.map(text => splitThoughts(text, markers).body);
+        }
+    }
+}
+
+const panels = new WeakMap();
+let nextId = 0;
+
+function applyTheme(root, settings) {
+    root.style.setProperty('--cot-accent', settings.color);
+    root.style.setProperty('--cot-text', settings.textColor);
+    root.style.setProperty('--cot-limit', `${settings.maxHeight}px`);
+    root.style.setProperty('--cot-font', `${settings.fontSize}px`);
+}
+
+/** One panel per native message element; no document observer or persistent timer.
+ * Detached virtualized messages and their listeners are collected together.
+ */
+function renderPanel(messageElement, record, settings) {
+    let ui = panels.get(messageElement);
+    if (!record) {
+        ui?.root.remove();
+        panels.delete(messageElement);
+        return;
+    }
+    if (!ui || !messageElement.contains(ui.root)) {
+        const root = document.createElement('section');
+        root.className = 'cute-cot';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'cute-cot-toggle';
+        const label = document.createElement('span');
+        label.className = 'cute-cot-label';
+        const chevron = document.createElement('span');
+        chevron.className = 'cute-cot-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        button.append(label, chevron);
+        const reveal = document.createElement('div');
+        reveal.className = 'cute-cot-reveal';
+        reveal.id = `cute-cot-${++nextId}`;
+        button.setAttribute('aria-controls', reveal.id);
+        const clip = document.createElement('div');
+        clip.className = 'cute-cot-clip';
+        const viewport = document.createElement('div');
+        viewport.className = 'cute-cot-viewport';
+        viewport.tabIndex = 0;
+        viewport.setAttribute('aria-label', '思考原文');
+        const text = document.createElement('div');
+        text.className = 'cute-cot-text';
+        viewport.append(text);
+        clip.append(viewport);
+        reveal.append(clip);
+        root.append(button, reveal);
+        const anchor = messageElement.querySelector('.mes_text');
+        if (!anchor) return;
+        anchor.before(root);
+        ui = { root, button, label, reveal, viewport, text, status: null, open: false, follow: true };
+        panels.set(messageElement, ui);
+        button.addEventListener('click', () => setExpanded(ui, !ui.open));
+        // User scrolling up suspends following. No timer needs to survive unmount.
+        viewport.addEventListener('wheel', event => { if (event.deltaY < 0) ui.follow = false; }, { passive: true });
+        let touchY = 0;
+        viewport.addEventListener('touchstart', event => { touchY = event.touches[0]?.clientY ?? 0; }, { passive: true });
+        viewport.addEventListener('touchmove', event => {
+            if ((event.touches[0]?.clientY ?? 0) > touchY + 4) ui.follow = false;
+        }, { passive: true });
+        viewport.addEventListener('scroll', () => {
+            if (viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop < 8) ui.follow = true;
+        }, { passive: true });
+    }
+    applyTheme(ui.root, settings);
+    const thinking = record.status === 'thinking';
+    ui.root.dataset.thinking = String(thinking);
+    ui.label.textContent = thinking ? '思考中…' : record.status === 'interrupted' ? '思考已停止' : '思考完成';
+    if (!thinking && Number.isFinite(record.duration)) {
+        ui.label.textContent += ` · ${(record.duration / 1000).toFixed(1)} 秒`;
+    }
+    if (ui.status !== record.status) {
+        setExpanded(ui, thinking);
+        ui.status = record.status;
+        ui.follow = true;
+    }
+    const next = record.text || (thinking ? '…' : '（空思考块）');
+    if (next !== ui.text.textContent) {
+        // This is the only insertion point for model text. Never use innerHTML,
+        // markdown helpers, XML parsers or the host's messageFormatting here.
+        ui.text.textContent = next;
+    }
+    if (ui.root.isConnected) {
+        // Animate growth as lines arrive, then keep a bounded scrolling viewport.
+        ui.viewport.style.height = `${Math.min(settings.maxHeight, ui.text.scrollHeight + 30)}px`;
+        if (ui.open && ui.follow) {
+            const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+            ui.viewport.scrollTo({ top: ui.viewport.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
+        }
+    }
+    return ui.root;
+}
+
+function setExpanded(ui, open) {
+    ui.open = open;
+    ui.root.dataset.open = String(open);
+    ui.button.setAttribute('aria-expanded', String(open));
+    ui.reveal.setAttribute('aria-hidden', String(!open));
+    ui.viewport.tabIndex = open ? 0 : -1;
+    ui.reveal.inert = !open;
+}
+
+const node=document.querySelector('.mes'),body=node.querySelector('.mes_text');
+let settings={...DEFAULTS},timer,record,started;
+const thought='先考虑语气：温柔、自然，不要过度亲昵。\n把忙碌的一天轻轻放下，留一个可以安静休息的画面。\n\n可以选月光、窗边或一阵晚风，但不需要堆叠修饰词。\n思考区只展示原文。下面这些标记也不会变成样式或组件：\n<style>body { display: none; }</style>\n<note>这是一段普通文本</note>\n**这里也不会变成加粗**\n\n最后用一句简短的祝愿收尾，保持自然的节奏。\n让烦恼先暂停，明天的事情交给明天。';
+function play(){clearInterval(timer);node.querySelector('.cute-cot')?.remove();body.textContent='';started=Date.now();let i=0;record={status:'thinking',text:'',duration:null};renderPanel(node,record,settings);timer=setInterval(()=>{i+=5;record.text=thought.slice(0,i);renderPanel(node,record,settings);if(i>=thought.length){clearInterval(timer);record.status='done';record.duration=Date.now()-started;renderPanel(node,record,settings);body.textContent='愿今晚的月光替你把烦恼放轻。好好休息，明天醒来，又是柔软崭新的一天。';}},90);}
+document.querySelector('#replay').onclick=play;document.querySelector('#stop').onclick=()=>{clearInterval(timer);record.status='interrupted';record.duration=Date.now()-started;renderPanel(node,record,settings);};document.querySelector('#color').oninput=e=>{settings.color=e.target.value;renderPanel(node,record,settings);};play();
+</script></html>

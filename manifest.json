@@ -1,0 +1,13 @@
+{
+  "display_name": "花笺 · 自定义思考",
+  "loading_order": 20,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Quirlune",
+  "version": "1.0.0",
+  "homePage": "https://github.com/Quirlune/tauritavern-cute-cot",
+  "generate_interceptor": "cuteCotExcludeHistory",
+  "hooks": { "activate": "activate" }
+}
